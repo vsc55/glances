@@ -21,6 +21,7 @@
 
 import os
 import socket
+from time import sleep
 
 from glances.compat import nativestr, range
 from glances.logger import logger
@@ -39,11 +40,7 @@ class Plugin(GlancesPlugin):
                                      stats_init_value=[])
 
         # Init the sensor class
-        self.hddtemp = GlancesGrabHDDTemp(args=args,
-                                          host=self.get_conf_value("hddtemp_host",
-                                                                   default="127.0.0.1"),
-                                          port=int(self.get_conf_value("hddtemp_port",
-                                                                       default="7634")))
+        self.hddtemp = GlancesGrabHDDTemp(args=args)
 
         # We do not want to display the stat in a dedicated area
         # The HDD temp is displayed within the sensors plugin
@@ -55,6 +52,16 @@ class Plugin(GlancesPlugin):
         """Update HDD stats using the input method."""
         # Init new stats
         stats = self.get_init_value()
+
+        print("Antes H:", self.hddtemp.host)
+        print("host:", self.get_conf_value("hddtemp_host", default="127.0.0.1"))
+        print("port:", self.get_conf_value("hddtemp_port", default="7634"))
+        print("limits:", self.limits)
+        sleep(15)
+#        input("Press Enter to continue...")
+
+        self.hddtemp.config(host=self.get_conf_value("hddtemp_host", default=None), 
+                            port=int(self.get_conf_value("hddtemp_port", default=None)))
 
         if self.input_method == 'local':
             # Update stats using the standard system lib
@@ -77,10 +84,15 @@ class GlancesGrabHDDTemp(object):
     def __init__(self, host='127.0.0.1', port=7634, args=None):
         """Init hddtemp stats."""
         self.args = args
-        self.host = host
-        self.port = port
+        self.config(host, port)
         self.cache = ""
         self.reset()
+
+    def config(self, host, port):
+        if host:
+            self.host = host
+        if port:
+            self.port = port
 
     def reset(self):
         """Reset/init the stats."""
